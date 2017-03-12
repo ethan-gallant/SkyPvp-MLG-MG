@@ -1,0 +1,22 @@
+######################################################
+#      - SkyPVPMLG [v1.0] Configuration File -       #
+#         Created by xMakerx for Mystic HC           #
+######################################################
+world: 'world'
+
+firstCorner:
+  x: 0.0
+  y: 0.0
+  z: 0.0
+
+secondCorner:
+  x: 0.0
+  y: 0.0
+  z: 0.0
+
+database:
+  username: 'root'
+  password: ''
+  database: 'uhc'
+  host: 'localhost'
+  port: '3306'

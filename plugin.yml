@@ -1,0 +1,18 @@
+name: MLGArena
+version: 1.0
+
+author: xMakerx
+main: io.skypvp.mlg.MLGArena
+
+commands:
+  mlg:
+    description: The base command for MLG arena.
+permissions:
+  mlg.leaderboard:
+    description: Gives a player permission to view the leaderboard.
+    default: true
+  mlg.admin:
+    description: Gives a player permission to set the corners of the drop region.
+    default: false
+    children:
+      - mlg.leaderboard
