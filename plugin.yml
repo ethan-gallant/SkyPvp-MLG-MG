@@ -1,8 +1,8 @@
 name: MLGArena
-version: 1.0
+version: 2.0
 
 author: xMakerx
-main: io.skypvp.mlg.MLGArena
+main: io.skypvp.mlg.MLGPlugin
 
 commands:
   mlg:
