@@ -1,127 +1,83 @@
 package io.skypvp.mlg;
 
-import java.util.HashMap;
-import java.util.UUID;
+import java.util.ArrayList;
+import java.util.List;
 
-import org.bukkit.ChatColor;
+import org.bukkit.Location;
 import org.bukkit.entity.Player;
-import org.bukkit.plugin.java.JavaPlugin;
 
-public class MLGArena extends JavaPlugin {
+public class MLGArena {
 
-    private final HashMap<UUID, Integer> points = new HashMap<UUID, Integer>();
-    private final HashMap<UUID, Integer> mlgStreaks = new HashMap<UUID, Integer>();
-    private final HashMap<UUID, Integer> inArena = new HashMap<UUID, Integer>();
-    private Settings settings = null;
+	private static final List<MLGArena> arenas = new ArrayList<>();
 
-    public void onEnable() {
-        settings = new Settings(this);
-        settings.load();
-    }
+	private final String name;
+	private final List<Player> players = new ArrayList<>();
+	private final Location pos1;
+	private final Location pos2;
 
-    public void onDisable() {
-        if(settings != null && settings.getDatabase() != null) {
-            for(Player p : getServer().getOnlinePlayers()) {
-                settings.getDatabase().handlePlayerExit(p.getUniqueId());
-            }
-        }
+	public MLGArena(Location pos1, Location pos2) {
+		this.pos1 = pos1;
+		this.pos2 = pos2;
+		this.name = "default";
+	}
 
-        if(settings != null) {
-            settings.save();
-        }
-    }
+	public MLGArena(String name, Location pos1, Location pos2) {
+		this.name = name;
+		this.pos1 = pos1;
+		this.pos2 = pos2;
+	}
 
-    public void showStats(final Player p) {
-        p.sendMessage("                              ");
-        int points = getPoints(p.getUniqueId());
-        p.sendMessage(ChatColor.translateAlternateColorCodes('&', String.format("&2You currently have &e%s &2%s&r&2.", points, (points != 1) ? "points" : "point")));
+	public boolean isArenaFloor(Location currentLocation) {
+		Location firstCorner = this.pos1;
+		Location secondCorner = this.pos2;
 
-        int streak = getStreak(p.getUniqueId());
-        if(streak != 0) {
-            p.sendMessage(ChatColor.translateAlternateColorCodes('&', String.format("&aYou are on a &6M&dL&9G &eStreak &aof &c&l%d&r&a!", streak)));
-        }
-    }
+		double minX = Math.min(firstCorner.getX(), secondCorner.getX());
+		double maxX = Math.max(firstCorner.getX(), secondCorner.getX());
+		double minZ = Math.min(firstCorner.getZ(), secondCorner.getZ());
+		double maxZ = Math.max(firstCorner.getZ(), secondCorner.getZ());
 
-    public void resetPlayer(final Player p) {
-        inArena.remove(p.getUniqueId());
-        p.teleport(settings.getWorld().getSpawnLocation());
-        MLGUtils.giveSpecialBuckets(p);
-    }
+		return (minX <= currentLocation.getX() && currentLocation.getX() <= maxX && minZ <= currentLocation.getZ()
+				&& currentLocation.getZ() <= maxZ && currentLocation.getY() <= firstCorner.getY() + 1);
+	}
 
-    public void databaseConnected() {
-        Events events = new Events(this);
-        getServer().getPluginManager().registerEvents(events, this);
+	public boolean areCornersSetup() {
+		Location firstCorner = this.pos1;
+		Location secondCorner = this.pos2;
 
-        Commands commands = new Commands(this);
-        getCommand("mlg").setExecutor(commands);
+		for (double d : new double[] { firstCorner.getX(), firstCorner.getZ(), secondCorner.getX(),
+				secondCorner.getZ() }) {
+			if (d == 0.0)
+				return false;
+		}
 
-        for(Player p : getServer().getOnlinePlayers()) {
-            MLGUtils.handlePlayerEntrance(p, this);
-            resetPlayer(p);
-        }
-    }
+		return true;
+	}
 
-    public void setInArena(UUID uuid, int dropHeight) {
-        inArena.put(uuid, dropHeight);
-    }
+	public String getName() {
+		return name;
+	}
 
-    public int getDropHeight(UUID uuid) {
-        if(!isInArena(uuid)) return -1;
-        return inArena.get(uuid);
-    }
+	public List<Player> getPlayers() {
+		return players;
+	}
 
-    public boolean isInArena(UUID uuid) {
-        return inArena.get(uuid) != null;
-    }
+	public Location getPos1() {
+		return pos1;
+	}
 
-    public void setPoints(UUID uuid, int p) {
-        points.put(uuid, p);
-    }
+	public Location getPos2() {
+		return pos2;
+	}
 
-    public int getPoints(UUID uuid) {
-        if(points.get(uuid) != null) {
-            return points.get(uuid);
-        }
+	public static List<MLGArena> getArenas() {
+		return arenas;
+	}
 
-        return 0;
-    }
-
-    public void setStreak(UUID uuid, int streak) {
-        mlgStreaks.put(uuid, streak);
-    }
-
-    public int getStreak(UUID uuid) {
-        if(mlgStreaks.get(uuid) != null) {
-            return mlgStreaks.get(uuid);
-        }
-
-        return 0;
-    }
-
-    public HashMap<UUID, Integer> getPoints() {
-        return this.points;
-    }
-
-    public HashMap<UUID, Integer> getStreaks() {
-        return this.mlgStreaks;
-    }
-
-    public HashMap<UUID, Integer> getInArena() {
-        return this.inArena;
-    }
-
-    public void disable() {
-        setEnabled(false);
-    }
-
-    public void sendConsoleMessage(String msg) {
-        String pluginName = getDescription().getName();
-        String prefix = ChatColor.DARK_GRAY +  "[" + ChatColor.AQUA + pluginName + ChatColor.DARK_GRAY + "]";
-        getServer().getConsoleSender().sendMessage(prefix + " " + msg);
-    }
-
-    public Settings getSettings() {
-        return this.settings;
-    }
-
+	public static MLGArena fromName(String name) {
+		for (MLGArena mlgArena : arenas) {
+			if(mlgArena.getName().equals(name))
+				return mlgArena;
+		}
+		return null;
+	}
 }
